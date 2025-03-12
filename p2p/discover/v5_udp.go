@@ -712,7 +712,7 @@ func (t *UDPv5) handlePacket(rawpacket []byte, fromAddr netip.AddrPort) error {
 		t.logcontext = packet.AppendLogInfo(t.logcontext)
 		t.log.Trace("<< "+packet.Name(), t.logcontext...)
 	}
-	t.handle(packet, fromID, fromAddr)
+	t.handle(packet, fromNode, fromID, fromAddr)
 	return nil
 }
 
@@ -748,7 +748,7 @@ func (t *UDPv5) getNode(id enode.ID) *enode.Node {
 }
 
 // handle processes incoming packets according to their message type.
-func (t *UDPv5) handle(p v5wire.Packet, fromID enode.ID, fromAddr netip.AddrPort) {
+func (t *UDPv5) handle(p v5wire.Packet, fromNode *enode.Node, fromID enode.ID, fromAddr netip.AddrPort) {
 	switch p := p.(type) {
 	case *v5wire.Unknown:
 		t.handleUnknown(p, fromID, fromAddr)
@@ -766,7 +766,7 @@ func (t *UDPv5) handle(p v5wire.Packet, fromID enode.ID, fromAddr netip.AddrPort
 	case *v5wire.Nodes:
 		t.handleCallResponse(fromID, fromAddr, p)
 	case *v5wire.TalkRequest:
-		t.talk.handleRequest(fromID, fromAddr, p)
+		t.talk.handleRequest(fromNode, fromAddr, p)
 	case *v5wire.TalkResponse:
 		t.handleCallResponse(fromID, fromAddr, p)
 	}
