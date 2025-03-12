@@ -430,7 +430,8 @@ func TestUDPv5_talkHandling(t *testing.T) {
 	defer test.close()
 
 	var recvMessage []byte
-	test.udp.RegisterTalkHandler("test", func(id enode.ID, addr *net.UDPAddr, message []byte) []byte {
+	// todo 需要添加对handshake之前的错误检查流程
+	test.udp.RegisterTalkHandler("test", func(n *enode.Node, message []byte) []byte {
 		recvMessage = message
 		return []byte("test response")
 	})
@@ -722,7 +723,11 @@ func (c *testCodec) Decode(input []byte, addr string) (enode.ID, *enode.Node, v5
 	if err != nil {
 		return enode.ID{}, nil, nil, err
 	}
-	return frame.NodeID, nil, p, nil
+	var n *enode.Node
+	if frame.Ptype == v5wire.TalkRequestMsg {
+		n = c.test.getNode(c.test.remotekey, c.test.remoteaddr).Node()
+	}
+	return frame.NodeID, n, p, nil
 }
 
 func (c *testCodec) decodeFrame(input []byte) (frame testCodecFrame, p v5wire.Packet, err error) {
